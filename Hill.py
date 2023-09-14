@@ -11,30 +11,35 @@ def makeMatrix(key, size):
         matrix = np.append(matrix, index)
     
     matrix = np.reshape(matrix, (size,size))
-    print(matrix)
     return matrix
 
 def Encrypt():
     print("Start encryption")
 
-    plaintext = input("Enter your message: ").lower()
+    plaintext = input("Enter your message: ").lower() #TODO remove spaces
     key = input("Enter your key: ").lower()
-    size = int(input("Enter the size of your matrix: "))
-    if(size != len(key)):
-        print("Your key doesn't match the matrix size. Exitting now.")
-        return
+    size = int(input("Enter the size of your matrix: ")) #if you enter 2, it'll create a 2 x 2 matrix, and is used below for determining the sets of letters for the calculation below
+    ciphertext = ""
     matrix = makeMatrix(key, size)
 
     for index in range(0, len(plaintext), size):
-        if(index + size > len(plaintext)):
+        if(index + size > len(plaintext)): #so if the next iteration will end after this, we need to add x at the end of the string to pad it
             extra = ""
-            for rep in range(size - (len(plaintext) - index)):
+            for rep in range(size - (len(plaintext) - index)): #loops based off the size inputted, subtraced by the result of the plaintext length minus the index
                 extra += "x"
             set = plaintext[index:index + (len(plaintext) - index)] + extra
-        else:
+        else: #if it is fine, then take the next amount of letters from the plaintext that is the size inputted by the user earlier
             set = plaintext[index:index + size]
-        print(set)
-        #TODO perform calculation on the set of letters with the matrix
+        
+        setNum = np.array([], int) 
+        for letter in set:
+            setNum = np.append(setNum, string.ascii_lowercase.find(letter))
+        
+        result = np.dot(setNum, matrix) % 26
+        for index in result:
+            ciphertext += string.ascii_lowercase[index]
+        
+    print(ciphertext)
     
 def Decrypt():
     print("start decryption")
@@ -57,5 +62,5 @@ def Menu():
 
 
 #Driver
-print("Welcome to the Hill Cipher Program.\nTo encrypt a message, enter 1.\tTo decrypt a message, enter 2\tTo exit the program, enter 3\n")
+print("Hill Cipher Program.\nTo encrypt a message, enter 1.\tTo decrypt a message, enter 2\tTo exit the program, enter 3\n")
 Menu()
