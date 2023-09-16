@@ -123,10 +123,8 @@ if __name__ == '__main__':
 
 """
 current issues:
-* no user input, everything is hard coded
-* 4x4 matrix and 5x5 matrix ciphers still need to be coded
 * no validation for size of the matrixes from input. Both for the matrix size and for the actual key inputted
-*
+* sometimes it throws an exception generating the inverse of the key matrix for decryption, not sure what causes it
 *
 *
 """
