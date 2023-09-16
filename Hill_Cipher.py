@@ -3,151 +3,129 @@ from sympy import Matrix
 # brute force list of alphabet chars
 alph = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s",
         "t", "u", "v", "w", "x", "y", "z"]
+
 """
+function makes a key matrix using the string from the key param. The size of the matrix is determined by the size param
+So a size of 3 will make a 3x3 matrix
 quick matrix explanation alphabet -> a=0 through z=25
-hardcoded 3x3 matrix. key = [[1, 2, 3], [0, 1, 4], [5, 6, 0]]
+example matrix: key = [[1, 2, 3], [0, 1, 4], [5, 6, 0]]
 """
-# hard coded key matrix
-keyMatrix = np.array([[1, 2, 3], [0, 1, 4], [5, 6, 0]])
-# roundabout way find modular inverse of keyMatrix using sympy, then converting back to a numpy array
-newMatrix = Matrix(keyMatrix)
-invsymmatrix = newMatrix.inv_mod(26)
-inverseModMatrix = np.array(invsymmatrix)
+def makeKeyMatrix(key, size):
+    matrix = np.array([], int)
 
-# hard coded user string
-usrStr = "Success is the ability to go from one failure to another with no loss of enthusiasm"
-# removes spaces
-usrStr = usrStr.replace(" ", "")
-# initialized lists
-chList = []
-numList = []
-# makes list of chars in usrStr while making sure all chars are lower case
-for ch in usrStr.lower():
-    chList.append(ch)
+    for letter in key:
+        index = alph.index(letter)
+        matrix = np.append(matrix, index)
 
+    matrix = np.reshape(matrix, (size,size))
+    return matrix
 
-def encrypt(chList):
+def encrypt(message, matrixSize, key):
     """
-    function encrypts the character list using a 3x3 hill cipher
-    :param chList:
-    :return: codedChars
+    function encrypts the message string using hill cipher with the key param
     """
-    # converts each character to a number that we can perform math on
-    for cha in chList:
-        num = alph.index(cha)
-        numList.append(num)
-    # adds the necessary x's to the end of the list to make sure the length of the numList is divisible by 3
-    if len(numList) % 3 == 2:
-        numList.append(23)
-    if len(numList) % 3 == 1:
-        numList.append(23)
-        numList.append(23)
     # initialized junk
-    one = 0
-    two = 0
-    three = 0
-    counter = 1
+    numList = []
     codeList = []
-    holdList = []
-    # breaks down numList into groups of 3 so that it can be multiplied with the 3x3 key
-    while len(numList) > 0:
-        if counter == 1:
-            one = numList.pop(0)
-            counter = 2
-        elif counter == 2:
-            two = numList.pop(0)
-            counter = 3
-        elif counter == 3:
-            three = numList.pop(0)
-            # once one, two, and three are correct from numList, add to a new 3x1 array (1x3 array? idk, who cares)
-            threeChars = np.array([[one], [two], [three]])
-            # matrix multiplication of 3x3 key and 3x1 group of numerical chars
-            codedGroup = keyMatrix.dot(threeChars)
-            # add each element of new 3x1 matrix to temporary list
-            holdList.append(codedGroup[0, 0])
-            holdList.append(codedGroup[1, 0])
-            holdList.append(codedGroup[2, 0])
-            counter = 1
-        else:
-            print("something went wrong")
-    # mods each number in temp list by 26 to finish modular matrix multiplication and adds results to codeList
-    while len(holdList) > 0:
-        codeList.append(holdList.pop(0) % 26)
-    # converting numerical values back into a list of alphabetical values
-    codedChars = []
-    for index in codeList:
-        char = alph[index]
-        codedChars.append(char)
+    codedMesssage = ""
+    
+    # makes the matrix from the given key
+    keyMatrix = makeKeyMatrix(key, matrixSize)
 
-    return codedChars
+    # adds the necessary x's to the end of the list to make sure the length of the numList is divisible by the matrix size
+    if len(message) % matrixSize != 0:
+        amountToAdd = matrixSize - (len(message) % matrixSize)
+        allX = amountToAdd * alph[23]
+        message += allX
+
+    # converts each character to a number that we can perform math on
+    for cha in message:
+            num = alph.index(cha)
+            numList.append(num)
+    
+    # breaks down numList into groups of the matrix size so that it can be multiplied with the key
+    for index in range(0, len(numList), matrixSize):
+        chars = numList[index:index + matrixSize]
+        codeList = keyMatrix.dot(chars) % 26
+
+        # converting numerical values back into a string of alphabetical values
+        for index in codeList:
+            codedMesssage += alph[index]
+
+    #return final result
+    return codedMesssage
 
 
-def decrypt(encodedChars):
+
+def decrypt(encodedMessage, matrixSize, key):
     """
-    function decrypts the character list of encoded characters using a 3x3 hill cipher (modular inverse)
-    :param encodedChars:
+    function decrypts the encoded string using hill cipher (modular inverse)
+    :param encodedMessage:
     :return: decodedChars
     """
-    # converts alphabetic list of chars into numeric values
-    for c in encodedChars:
-        num = alph.index(c)
-        numList.append(num)
     # initialized bs
-    one = 0
-    two = 0
-    three = 0
-    counter = 1
-    codeList = []
-    holdList = []
-    # breaks down numList into groups of 3 so that it can be multiplied with the 3x3 reverse key
-    while len(numList) > 0:
-        if counter == 1:
-            one = numList.pop(0)
-            counter = 2
-        elif counter == 2:
-            two = numList.pop(0)
-            counter = 3
-        elif counter == 3:
-            three = numList.pop(0)
-            # once one, two, and three are correct from numList, add to a new 3x1 array (1x3 array? idk, who cares)
-            threeChars = np.array([[one], [two], [three]])
-            # matrix multiplication of 3x3 reverse key and 3x1 group of numerical chars
-            decodedGroup = inverseModMatrix.dot(threeChars)
-            # add each element of new 3x1 matrix to temporary list
-            holdList.append(decodedGroup[0, 0])
-            holdList.append(decodedGroup[1, 0])
-            holdList.append(decodedGroup[2, 0])
-            counter = 1
+    numList = []
+    decodedList = []
+    decodedMessage = ""
+
+    # roundabout way find modular inverse of keyMatrix using sympy, then converting back to a numpy array
+    newMatrix = Matrix(makeKeyMatrix(key, matrixSize))
+    print(newMatrix)
+    invsymmatrix = newMatrix.inv_mod(26)
+    inverseModMatrix = np.array(invsymmatrix)
+
+    # converts alphabetic list of chars into numeric values
+    for char in encodedMessage:
+        num = alph.index(char)
+        numList.append(num)
+
+    # breaks down numList into groups of the matrix size so that it can be multiplied with the reverse key
+    for index in range(0, len(numList), matrixSize):
+        chars = numList[index:index + matrixSize]
+        decodedList = inverseModMatrix.dot(chars) % 26
+
+        # converting numerical values back into a list of alphabetical values
+        for index in decodedList:
+            decodedMessage += alph[index]
+    
+    #return result
+    return decodedMessage
+
+
+
+def Menu():
+    exit = False
+    while(not(exit)):
+        selection = input("Enter selection: ")
+        if selection == "1":
+            message = input("\nEnter your message: ").lower().replace(" ", "")
+            matrixSize = int(input("Enter the size of the key matrix: "))
+            key = input("Enter your key: ")
+            codedMessage = encrypt(message, matrixSize, key)
+            print("\nYour encrypted message: {}".format(codedMessage) )
+
+        elif selection == "2":
+            message = input("\nEnter your message: ").lower().replace(" ", "")
+            matrixSize = int(input("Enter the size of the key matrix: "))
+            key = input("Enter your key: ")
+            decodedMessage = decrypt(message, matrixSize, key)
+            print("\nYour decrypted message: {}".format(decodedMessage))
+
+        elif selection == "3":
+            print("\nExiting program.")
+            exit = True
+
         else:
-            print("something went wrong")
-    # mods each number in temp list by 26 to finish modular matrix multiplication and adds results to codeList
-    while len(holdList) > 0:
-        codeList.append(holdList.pop(0) % 26)
-    # converting numerical values back into a list of alphabetical values
-    decodedChars = []
-    for index in codeList:
-        char = alph[index]
-        decodedChars.append(char)
-
-    return decodedChars
-
+            print("Unknown option.\nTo encrypt a message, enter 1.\tTo decrypt a message, enter 2\tTo exit the program, enter 3\n")
 
 if __name__ == '__main__':
-    print("Key Matrix:")
-    print(keyMatrix)
-    print("Reverse Key Matrix:")
-    print(inverseModMatrix)
-    encryptedChars = encrypt(chList)
-    print("Encrypted Characters:")
-    print(encryptedChars)
-    decryptedChars = decrypt(encryptedChars)
-    print("Decrypted Characters:")
-    print(decryptedChars)
+    Menu()
+
 """
 current issues:
 * no user input, everything is hard coded
 * 4x4 matrix and 5x5 matrix ciphers still need to be coded
-*
+* no validation for size of the matrixes from input. Both for the matrix size and for the actual key inputted
 *
 *
 *
