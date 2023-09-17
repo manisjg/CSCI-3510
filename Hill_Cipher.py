@@ -18,6 +18,7 @@ def makeKeyMatrix(key, size):
         matrix = np.append(matrix, index)
 
     matrix = np.reshape(matrix, (size,size))
+    print(matrix)
     return matrix
 
 def encrypt(message, matrixSize, key):
@@ -97,17 +98,22 @@ def Menu():
     exit = False
     while(not(exit)):
         selection = input("Enter selection: ")
+        #Success is the ability to go from one failure to another with no loss of enthusiasm
         if selection == "1":
             message = input("\nEnter your message: ").lower().replace(" ", "")
             matrixSize = int(input("Enter the size of the key matrix: "))
-            key = input("Enter your key: ")
+            key = input("Enter your key: ").lower().replace(" ", "")
+            key4by4 = "cdbfbechdvgiacdb"
+            key5by5 = "FIND THIS"
             codedMessage = encrypt(message, matrixSize, key)
             print("\nYour encrypted message: {}".format(codedMessage) )
 
         elif selection == "2":
             message = input("\nEnter your message: ").lower().replace(" ", "")
             matrixSize = int(input("Enter the size of the key matrix: "))
-            key = input("Enter your key: ")
+            key = input("Enter your key: ").lower().replace(" ", "")
+            key4by4 = "cdbfbechdvgiacdb"
+            key5by5 = "FIND THIS"
             decodedMessage = decrypt(message, matrixSize, key)
             print("\nYour decrypted message: {}".format(decodedMessage))
 
